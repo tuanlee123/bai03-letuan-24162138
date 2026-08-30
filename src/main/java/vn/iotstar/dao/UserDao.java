@@ -7,4 +7,5 @@ public interface UserDao {
     void insert(User user);
     boolean checkExistUsername(String username);
     boolean checkExistEmail(String email);
+    void updatePassword(String email, String newPassword);
 }

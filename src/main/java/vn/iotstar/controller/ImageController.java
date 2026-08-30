@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+// Giữ nguyên đường dẫn này làm mặc định để load ảnh
 @WebServlet(urlPatterns = "/image")
 public class ImageController extends HttpServlet {
     private static final long serialVersionUID = 1L;
