@@ -6,7 +6,8 @@ import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import vn.iotstar.config.JpaConfig;
 import vn.iotstar.dao.IProductDao;
-import vn.iotstar.entity.Product;
+import vn.iotstar.model.Product;
+
 import java.util.List;
 
 public class ProductDao implements IProductDao {

@@ -1,24 +1,24 @@
 package vn.iotstar.service.impl;
 
-import vn.iotstar.dao.UserDao;
 import vn.iotstar.dao.impl.UserDaoImpl;
-import vn.iotstar.model.User;
-import vn.iotstar.service.UserService;
+import vn.iotstar.model.User; // ĐÃ ĐỔI IMPORT
 
-public class UserServiceImpl implements UserService {
-    private UserDao userDao = new UserDaoImpl();
+public class UserServiceImpl {
+    private final UserDaoImpl userDao = new UserDaoImpl();
 
-    @Override
-    public User login(String username, String password) {
-        User user = this.get(username);
-        if (user != null && password.equals(user.getPassword())) {
-            return user;
-        }
-        return null;
+    public User findById(int id) {
+        return userDao.findById(id);
     }
 
-    @Override
-    public User get(String username) {
-        return userDao.get(username);
+    public void updateProfile(int userId, String fullname, String phone, String avatarFileName) {
+        User user = userDao.findById(userId);
+        if (user != null) {
+            user.setFullname(fullname);
+            user.setPhone(phone);
+            if (avatarFileName != null && !avatarFileName.trim().isEmpty()) {
+                user.setAvatar(avatarFileName);
+            }
+            userDao.update(user);
+        }
     }
 }

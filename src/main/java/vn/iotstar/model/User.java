@@ -1,126 +1,75 @@
 package vn.iotstar.model;
 
 import java.io.Serializable;
-import java.sql.Date;
+import java.util.Date;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "[User]")
 public class User implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private int id;
-	private String email;
-	private String username;
-	private String fullname;
-	private String password;
-	private String avatar;
-	private int roleid;
-	private String phone;
-	private Date createdDate;
-	private int isActive;
-	private String otpCode;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-	public int getIsActive() {
-		return isActive;
-	}
+    @Column(name = "email", length = 255)
+    private String email;
 
-	public void setIsActive(int isActive) {
-		this.isActive = isActive;
-	}
+    @Column(name = "username", length = 255, nullable = false)
+    private String username;
 
-	public String getOtpCode() {
-		return otpCode;
-	}
+    @Column(name = "fullname", length = 255)
+    private String fullname;
 
-	public void setOtpCode(String otpCode) {
-		this.otpCode = otpCode;
-	}
+    @Column(name = "password", length = 255, nullable = false)
+    private String password;
 
-	public User() {
-		super();
-	}
+    @Column(name = "avatar", length = 255)
+    private String avatar;
 
-	public User(int id, String email, String username, String fullname, String password, String avatar, int roleid,
-			String phone, Date createdDate) {
-		super();
-		this.id = id;
-		this.email = email;
-		this.username = username;
-		this.fullname = fullname;
-		this.password = password;
-		this.avatar = avatar;
-		this.roleid = roleid;
-		this.phone = phone;
-		this.createdDate = createdDate;
-	}
+    @Column(name = "roleid")
+    private Integer roleid;
 
-	public int getId() {
-		return id;
-	}
+    @Column(name = "phone", length = 50)
+    private String phone;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    @Temporal(TemporalType.DATE)
+    @Column(name = "createdDate")
+    private Date createdDate;
 
-	public String getEmail() {
-		return email;
-	}
+    @Transient // Không bắt buộc lưu cột này vào DB nếu chỉ dùng tạm cho session xác thực OTP
+    private String otpCode;
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public User() {}
 
-	public String getUsername() {
-		return username;
-	}
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-	public String getFullname() {
-		return fullname;
-	}
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-	public void setFullname(String fullname) {
-		this.fullname = fullname;
-	}
+    public String getFullname() { return fullname; }
+    public void setFullname(String fullname) { this.fullname = fullname; }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
 
-	public String getAvatar() {
-		return avatar;
-	}
+    public Integer getRoleid() { return roleid; }
+    public void setRoleid(Integer roleid) { this.roleid = roleid; }
 
-	public void setAvatar(String avatar) {
-		this.avatar = avatar;
-	}
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-	public int getRoleid() {
-		return roleid;
-	}
+    public Date getCreatedDate() { return createdDate; }
+    public void setCreatedDate(Date createdDate) { this.createdDate = createdDate; }
 
-	public void setRoleid(int roleid) {
-		this.roleid = roleid;
-	}
-
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-	public Date getCreatedDate() {
-		return createdDate;
-	}
-
-	public void setCreatedDate(Date createdDate) {
-		this.createdDate = createdDate;
-	}
+    public String getOtpCode() { return otpCode; }
+    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
 }

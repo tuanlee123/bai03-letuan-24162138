@@ -1,4 +1,4 @@
-package home;
+package vn.iotstar.filter;
 
 import java.io.IOException;
 import jakarta.servlet.Filter;

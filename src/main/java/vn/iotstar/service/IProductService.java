@@ -1,7 +1,8 @@
 package vn.iotstar.service;
 
-import vn.iotstar.entity.Product;
 import java.util.List;
+
+import vn.iotstar.model.Product;
 
 public interface IProductService {
     void insert(Product product);

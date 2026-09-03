@@ -1,7 +1,8 @@
 package vn.iotstar.dao;
 
-import vn.iotstar.entity.Product;
 import java.util.List;
+
+import vn.iotstar.model.Product;
 
 public interface IProductDao {
     void insert(Product product);

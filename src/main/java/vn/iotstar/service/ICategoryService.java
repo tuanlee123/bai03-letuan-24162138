@@ -1,7 +1,8 @@
 package vn.iotstar.service;
 
 import java.util.List;
-import vn.iotstar.entity.Category;
+
+import vn.iotstar.model.Category;
 
 public interface ICategoryService {
     void insert(Category category);

@@ -15,6 +15,16 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>opensymphony</groupId>
+			<artifactId>sitemesh</artifactId>
+			<version>2.4.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sitemesh</groupId>
+			<artifactId>sitemesh</artifactId>
+			<version>3.2.1</version>
+		</dependency>
 		<!-- Thư viện gửi Email cho Jakarta EE 10 -->
 		<dependency>
 			<groupId>org.eclipse.angus</groupId>

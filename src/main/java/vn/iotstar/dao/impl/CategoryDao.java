@@ -8,7 +8,7 @@ import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import vn.iotstar.config.JpaConfig;
 import vn.iotstar.dao.ICategoryDao;
-import vn.iotstar.entity.Category;
+import vn.iotstar.model.Category;
 
 public class CategoryDao implements ICategoryDao {
 

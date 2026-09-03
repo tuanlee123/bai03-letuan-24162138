@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/views/layouts">
+    <!-- Những trang không cần bọc khung layout -->
+    <excludes>
+        <pattern>/login*</pattern>
+        <pattern>/register*</pattern>
+        <pattern>/image*</pattern>
+    </excludes>
+
+    <!-- Bọc khung layout Admin -->
+    <decorator name="admin" page="admin.jsp">
+        <pattern>/admin/*</pattern>
+    </decorator>
+
+    <!-- Bọc khung layout Web người dùng -->
+    <decorator name="web" page="web.jsp">
+        <pattern>/home*</pattern>
+        <pattern>/product*</pattern>
+        <pattern>/profile*</pattern>
+    </decorator>
+</decorators>

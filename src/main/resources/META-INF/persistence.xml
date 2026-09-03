@@ -7,12 +7,14 @@
     <persistence-unit name="jpa-hibernate-sqlserver" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <!-- Khai báo các Entity -->
-        <class>vn.iotstar.entity.Category</class>
-        <class>vn.iotstar.entity.Product</class>
+        <!-- ĐÃ CẬP NHẬT CHUẨN: Khai báo đủ 4 Entity đang nằm trong package model -->
+        <class>vn.iotstar.model.Category</class>
+        <class>vn.iotstar.model.Product</class>
+        <class>vn.iotstar.model.User</class>
+        <class>vn.iotstar.model.Video</class>
 
         <properties>
-            <!-- ĐÃ FIX CHUẨN URL CHO BẢN SQLEXPRESS VÀ TÊN DATABASE -->
+            <!-- Giữ nguyên cấu hình DB chính xác của bạn -->
             <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlserver://localhost;instanceName=SQLEXPRESS;databaseName=ShoppingServiceMVC;encrypt=true;trustServerCertificate=true;" />
             <property name="jakarta.persistence.jdbc.user" value="sa" />
             <property name="jakarta.persistence.jdbc.password" value="123456" />
@@ -21,6 +23,8 @@
             <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect" />
             <property name="hibernate.show_sql" value="true" />
             <property name="hibernate.format_sql" value="true" />
+            
+            <!-- Update giúp tự động cập nhật quan hệ 1-N (Foreign Key) vào Database -->
             <property name="hibernate.hbm2ddl.auto" value="update" />
         </properties>
     </persistence-unit>

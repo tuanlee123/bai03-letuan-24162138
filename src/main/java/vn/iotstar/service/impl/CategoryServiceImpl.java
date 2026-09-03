@@ -3,7 +3,7 @@ package vn.iotstar.service.impl;
 import java.util.List;
 import vn.iotstar.dao.ICategoryDao;
 import vn.iotstar.dao.impl.CategoryDao;
-import vn.iotstar.entity.Category;
+import vn.iotstar.model.Category;
 import vn.iotstar.service.ICategoryService;
 
 public class CategoryServiceImpl implements ICategoryService {

@@ -1,4 +1,4 @@
-package vn.iotstar.entity;
+package vn.iotstar.model;
 
 import java.io.Serializable;
 import jakarta.persistence.*;

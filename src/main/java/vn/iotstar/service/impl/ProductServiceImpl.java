@@ -2,7 +2,7 @@ package vn.iotstar.service.impl;
 
 import vn.iotstar.dao.IProductDao;
 import vn.iotstar.dao.impl.ProductDao;
-import vn.iotstar.entity.Product;
+import vn.iotstar.model.Product;
 import vn.iotstar.service.IProductService;
 import java.util.List;
 
