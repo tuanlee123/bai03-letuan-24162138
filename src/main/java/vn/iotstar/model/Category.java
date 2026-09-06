@@ -24,11 +24,9 @@ public class Category implements Serializable {
     @Column(name = "status")
     private int status;
 
-    // Quan hệ với bảng Video (giữ nguyên của bạn)
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Video> videos;
 
-    // BỔ SUNG: Quan hệ 1-N với bảng Product (Yêu cầu của thầy)
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Product> products;
 
@@ -43,7 +41,6 @@ public class Category implements Serializable {
         this.products = products;
     }
 
-    // --- GETTER & SETTER CŨ ---
     public int getCategoryId() { return this.categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
 
@@ -59,31 +56,6 @@ public class Category implements Serializable {
     public List<Video> getVideos() { return this.videos; }
     public void setVideos(List<Video> videos) { this.videos = videos; }
 
-    public Video addVideo(Video video) {
-        getVideos().add(video);
-        video.setCategory(this);
-        return video;
-    }
-
-    public Video removeVideo(Video video) {
-        getVideos().remove(video);
-        video.setCategory(null);
-        return video;
-    }
-
-    // --- BỔ SUNG GETTER & SETTER CHO PRODUCT ---
     public List<Product> getProducts() { return this.products; }
     public void setProducts(List<Product> products) { this.products = products; }
-
-    public Product addProduct(Product product) {
-        getProducts().add(product);
-        product.setCategory(this);
-        return product;
-    }
-
-    public Product removeProduct(Product product) {
-        getProducts().remove(product);
-        product.setCategory(null);
-        return product;
-    }
 }

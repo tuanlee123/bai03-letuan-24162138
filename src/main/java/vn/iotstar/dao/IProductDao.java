@@ -1,20 +1,17 @@
 package vn.iotstar.dao;
 
-import java.util.List;
-
 import vn.iotstar.model.Product;
+import java.util.List;
 
 public interface IProductDao {
     void insert(Product product);
     void update(Product product);
-    void delete(int productId) throws Exception;
-    Product findById(int productId);
+    void delete(int id);
+    Product findById(int id);
     List<Product> findAll();
     
-    // Hàm phân trang (6 SP/trang)
-    List<Product> findAll(int page, int pagesize);
-    int count();
-    
-    // Hàm lấy 10 SP mới nhất
+    // Các hàm phục vụ trang chủ và phân trang
     List<Product> findTop10Latest();
+    List<Product> findWithPaging(int page, int pageSize);
+    int countTotal();
 }

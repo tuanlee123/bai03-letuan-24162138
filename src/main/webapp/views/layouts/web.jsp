@@ -1,59 +1,43 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="sitemesh" uri="http://www.opensymphony.com/sitemesh/decorator" %>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title><sitemesh:title default="Shopping Service" /></title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
-        header { background: #007bff; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        header .logo { font-size: 20px; font-weight: bold; text-decoration: none; color: white; }
-        header nav a { color: white; text-decoration: none; margin-left: 20px; font-weight: 500; }
-        header nav a:hover { text-decoration: underline; color: #ffdd57; }
-        .main-container { flex: 1; width: 90%; max-width: 1100px; margin: 25px auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-        footer { background: #343a40; color: #bbb; text-align: center; padding: 15px 0; font-size: 14px; margin-top: auto; }
-    </style>
-    <sitemesh:head />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><sitemesh:write property='title'/> - Cửa Hàng</title>
+    <!-- Template Bootstrap 5 CDN đặt duy nhất tại Layout này -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <sitemesh:write property='head'/>
 </head>
-<body>
+<body class="bg-light d-flex flex-column min-vh-100">
 
-    <header>
-        <a href="<c:url value='/home'/>" class="logo">🛍️ ShoppingService</a>
-        <nav>
-            <a href="<c:url value='/home'/>">Trang chủ</a>
-            <a href="<c:url value='/product'/>">Sản phẩm</a>
-            
-            <%-- Kiểm tra biến session 'account' --%>
-            <c:choose>
-                <c:when test="${not empty sessionScope.account}">
-                    <a href="<c:url value='/profile'/>">Hồ sơ (${sessionScope.account.fullname})</a>
-                    
-                    <%-- Nếu là Admin (roleid = 1) --%>
-                    <c:if test="${sessionScope.account.roleid == 1}">
-                        <a href="<c:url value='/admin/products'/>" style="color: #ffdd57; border: 1px solid #ffdd57; padding: 3px 8px; border-radius: 4px;">⚙️ Quản trị</a>
-                    </c:if>
-                    
-                    <a href="<c:url value='/logout'/>">Đăng xuất</a>
-                </c:when>
-                <c:otherwise>
-                    <a href="<c:url value='/login'/>">Đăng nhập</a>
-                    <a href="<c:url value='/register'/>">Đăng ký</a>
-                </c:otherwise>
-            </c:choose>
-        </nav>
-    </header>
+    <!-- Navbar chung -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm py-2">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-warning" href="<c:url value='/home'/>">
+                <i class="bi bi-shop me-2"></i>SHOPPING ONLINE
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link text-white" href="<c:url value='/home'/>">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="<c:url value='/product'/>">Tất cả sản phẩm</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-    <div class="main-container">
-        <!-- Nội dung của trang con sẽ đổ vào đây -->
-        <sitemesh:body />
-    </div>
+    <!-- Nơi SiteMesh 3 nhúng nội dung file con vào -->
+    <main class="container py-4 flex-grow-1">
+        <sitemesh:write property='body'/>
+    </main>
 
-    <footer>
-        <p>&copy; 2026 ShoppingService. Phát triển với JPA & SiteMesh.</p>
+    <!-- Footer chung -->
+    <footer class="bg-white py-3 border-top text-center text-muted small mt-auto">
+        <p class="mb-0">© 2026 Shopping Service MVC</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

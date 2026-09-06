@@ -28,6 +28,9 @@ public class User implements Serializable {
     @Column(name = "avatar", length = 255)
     private String avatar;
 
+    @Column(name = "images", length = 255)
+    private String images;
+
     @Column(name = "roleid")
     private Integer roleid;
 
@@ -38,7 +41,7 @@ public class User implements Serializable {
     @Column(name = "createdDate")
     private Date createdDate;
 
-    @Transient // Không bắt buộc lưu cột này vào DB nếu chỉ dùng tạm cho session xác thực OTP
+    @Transient
     private String otpCode;
 
     public User() {}
@@ -60,6 +63,9 @@ public class User implements Serializable {
 
     public String getAvatar() { return avatar; }
     public void setAvatar(String avatar) { this.avatar = avatar; }
+
+    public String getImages() { return images; }
+    public void setImages(String images) { this.images = images; }
 
     public Integer getRoleid() { return roleid; }
     public void setRoleid(Integer roleid) { this.roleid = roleid; }

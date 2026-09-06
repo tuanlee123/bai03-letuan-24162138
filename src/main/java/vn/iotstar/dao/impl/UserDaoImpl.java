@@ -2,68 +2,151 @@ package vn.iotstar.dao.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
-import vn.iotstar.config.JpaConfig;
+import vn.iotstar.config.JPAConfig;
+import vn.iotstar.dao.IUserDao;
 import vn.iotstar.model.User;
 
-public class UserDaoImpl {
+import java.util.List;
 
-    public User findById(int id) {
-        EntityManager em = JpaConfig.getEntityManager();
+public class UserDaoImpl implements IUserDao {
+
+    @Override
+    public void insert(User user) {
+        EntityManager enma = JPAConfig.getEntityManager();
+        EntityTransaction trans = enma.getTransaction();
         try {
-            return em.find(User.class, id);
+            trans.begin();
+            enma.persist(user);
+            trans.commit();
+        } catch (Exception e) {
+            if (trans.isActive()) {
+                trans.rollback();
+            }
+            e.printStackTrace();
         } finally {
-            em.close();
+            enma.close();
         }
     }
 
+    @Override
     public void update(User user) {
-        EntityManager em = JpaConfig.getEntityManager();
-        EntityTransaction trans = em.getTransaction();
+        EntityManager enma = JPAConfig.getEntityManager();
+        EntityTransaction trans = enma.getTransaction();
         try {
             trans.begin();
-            em.merge(user);
+            enma.merge(user);
             trans.commit();
         } catch (Exception e) {
-            if (trans.isActive()) trans.rollback();
-            throw e;
+            if (trans.isActive()) {
+                trans.rollback();
+            }
+            e.printStackTrace();
         } finally {
-            em.close();
+            enma.close();
         }
     }
 
-    public void insertRegister(User user) {
-        EntityManager em = JpaConfig.getEntityManager();
-        EntityTransaction trans = em.getTransaction();
+    @Override
+    public void delete(int id) {
+        EntityManager enma = JPAConfig.getEntityManager();
+        EntityTransaction trans = enma.getTransaction();
         try {
             trans.begin();
-            em.persist(user);
+            User user = enma.find(User.class, id);
+            if (user != null) {
+                enma.remove(user);
+            }
             trans.commit();
         } catch (Exception e) {
-            if (trans.isActive()) trans.rollback();
-            throw e;
+            if (trans.isActive()) {
+                trans.rollback();
+            }
+            e.printStackTrace();
         } finally {
-            em.close();
+            enma.close();
         }
     }
 
-    public User findByUsernameOrEmail(String keyword) {
-        EntityManager em = JpaConfig.getEntityManager();
+    @Override
+    public User findById(int id) {
+        EntityManager enma = JPAConfig.getEntityManager();
         try {
-            String jpql = "SELECT u FROM User u WHERE u.username = :kw OR u.email = :kw";
-            TypedQuery<User> query = em.createQuery(jpql, User.class);
-            query.setParameter("kw", keyword);
-            return query.getResultStream().findFirst().orElse(null);
+            return enma.find(User.class, id);
         } finally {
-            em.close();
+            enma.close();
         }
     }
 
-    public User login(String usernameOrEmail, String password) {
-        User user = findByUsernameOrEmail(usernameOrEmail);
-        if (user != null && user.getPassword().equals(password)) {
-            return user;
+    @Override
+    public User findByUsername(String username) {
+        EntityManager enma = JPAConfig.getEntityManager();
+        try {
+            String jpql = "SELECT u FROM User u WHERE u.username = :username";
+            TypedQuery<User> query = enma.createQuery(jpql, User.class);
+            query.setParameter("username", username);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null; // Không tìm thấy User
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            enma.close();
         }
-        return null;
+    }
+
+    @Override
+    public User findByEmail(String email) {
+        EntityManager enma = JPAConfig.getEntityManager();
+        try {
+            String jpql = "SELECT u FROM User u WHERE u.email = :email";
+            TypedQuery<User> query = enma.createQuery(jpql, User.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null; // Không tìm thấy email
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            enma.close();
+        }
+    }
+
+    @Override
+    public void updatePassword(String username, String newPassword) {
+        EntityManager enma = JPAConfig.getEntityManager();
+        EntityTransaction trans = enma.getTransaction();
+        try {
+            trans.begin();
+            String jpql = "UPDATE User u SET u.password = :password WHERE u.username = :username";
+            Query query = enma.createQuery(jpql);
+            query.setParameter("password", newPassword);
+            query.setParameter("username", username);
+            query.executeUpdate();
+            trans.commit();
+        } catch (Exception e) {
+            if (trans.isActive()) {
+                trans.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            enma.close();
+        }
+    }
+
+    @Override
+    public List<User> findAll() {
+        EntityManager enma = JPAConfig.getEntityManager();
+        try {
+            String jpql = "SELECT u FROM User u";
+            TypedQuery<User> query = enma.createQuery(jpql, User.class);
+            return query.getResultList();
+        } finally {
+            enma.close();
+        }
     }
 }

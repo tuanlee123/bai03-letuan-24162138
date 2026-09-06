@@ -1,15 +1,14 @@
 package vn.iotstar.service.impl;
 
 import vn.iotstar.dao.IProductDao;
-import vn.iotstar.dao.impl.ProductDao;
+import vn.iotstar.dao.impl.ProductDaoImpl;
 import vn.iotstar.model.Product;
 import vn.iotstar.service.IProductService;
+
 import java.util.List;
 
 public class ProductServiceImpl implements IProductService {
-    
-    // Khởi tạo đối tượng từ tầng DAO
-    private IProductDao productDao = new ProductDao();
+    private IProductDao productDao = new ProductDaoImpl();
 
     @Override
     public void insert(Product product) {
@@ -22,17 +21,13 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    public void delete(int productId) {
-        try {
-            productDao.delete(productId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void delete(int id) {
+        productDao.delete(id);
     }
 
     @Override
-    public Product findById(int productId) {
-        return productDao.findById(productId);
+    public Product findById(int id) {
+        return productDao.findById(id);
     }
 
     @Override
@@ -41,17 +36,17 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    public List<Product> findAll(int page, int pagesize) {
-        return productDao.findAll(page, pagesize);
-    }
-
-    @Override
-    public int count() {
-        return productDao.count();
-    }
-
-    @Override
     public List<Product> findTop10Latest() {
         return productDao.findTop10Latest();
+    }
+
+    @Override
+    public List<Product> findWithPaging(int page, int pageSize) {
+        return productDao.findWithPaging(page, pageSize);
+    }
+
+    @Override
+    public int countTotal() {
+        return productDao.countTotal();
     }
 }
