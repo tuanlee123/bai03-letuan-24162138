@@ -1,15 +1,18 @@
 package vn.iotstar.service.impl;
 
-import vn.iotstar.dao.IUserDao;
-import vn.iotstar.dao.impl.UserDaoImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import vn.iotstar.model.User;
+import vn.iotstar.repository.UserRepository;
 import vn.iotstar.service.IUserService;
 
 import java.util.List;
 
+@Service
 public class UserServiceImpl implements IUserService {
 
-    private IUserDao userDao = new UserDaoImpl();
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public User login(String username, String password) {
@@ -22,17 +25,17 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public void insert(User user) {
-        userDao.insert(user);
+        userRepository.save(user);
     }
 
     @Override
     public void update(User user) {
-        userDao.update(user);
+        userRepository.save(user);
     }
 
     @Override
     public void updateProfile(int id, String fullname, String phone, String images) {
-        User user = userDao.findById(id);
+        User user = this.findById(id);
         if (user != null) {
             user.setFullname(fullname);
             user.setPhone(phone);
@@ -40,47 +43,60 @@ public class UserServiceImpl implements IUserService {
                 user.setImages(images);
                 user.setAvatar(images);
             }
-            userDao.update(user);
+            userRepository.save(user);
         }
     }
 
     @Override
     public void delete(int id) {
-        userDao.delete(id);
+        userRepository.deleteById(id);
     }
 
     @Override
     public User findById(int id) {
-        return userDao.findById(id);
+        return userRepository.findById(id).orElse(null);
     }
 
     @Override
     public User findByUsername(String username) {
-        return userDao.findByUsername(username);
+        return userRepository.findByUsername(username).orElse(null);
     }
 
     @Override
     public User findByEmail(String email) {
-        return userDao.findByEmail(email);
+        return userRepository.findByEmail(email).orElse(null);
     }
 
     @Override
     public void updatePassword(String username, String newPassword) {
-        userDao.updatePassword(username, newPassword);
+        User user = this.findByUsername(username);
+        if (user != null) {
+            user.setPassword(newPassword);
+            userRepository.save(user);
+        }
     }
 
     @Override
     public boolean checkExistUsername(String username) {
-        return userDao.findByUsername(username) != null;
+        return userRepository.existsByUsername(username);
     }
 
     @Override
     public boolean checkExistEmail(String email) {
-        return userDao.findByEmail(email) != null;
+        return userRepository.existsByEmail(email);
     }
 
     @Override
     public List<User> findAll() {
-        return userDao.findAll();
+        return userRepository.findAll();
+    }
+
+    @Override
+    public List<User> search(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return userRepository.findAll();
+        }
+        String term = keyword.trim();
+        return userRepository.findByUsernameContainingIgnoreCaseOrFullnameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term, term);
     }
 }

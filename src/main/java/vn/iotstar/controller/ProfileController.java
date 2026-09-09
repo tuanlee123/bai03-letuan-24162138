@@ -1,111 +1,92 @@
 package vn.iotstar.controller;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.Part;
-import vn.iotstar.model.User;
-import vn.iotstar.service.IUserService;
-import vn.iotstar.service.impl.UserServiceImpl;
-import vn.iotstar.util.Constant;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
-@WebServlet(urlPatterns = {"/profile"})
-@MultipartConfig(
-    fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
-    maxFileSize = 1024 * 1024 * 10,       // 10MB
-    maxRequestSize = 1024 * 1024 * 50     // 50MB
-)
-public class ProfileController extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-    private IUserService userService = new UserServiceImpl();
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
-    // Hàm lấy tên file theo chuẩn Multipart
-    private String getFileName(Part part) {
-        for (String content : part.getHeader("content-disposition").split(";")) {
-            if (content.trim().startsWith("filename")) {
-                return content.substring(content.indexOf("=") + 2, content.length() - 1).replace("\"", "");
-            }
-        }
-        return "default.file";
-    }
+import jakarta.servlet.http.HttpSession;
+import vn.iotstar.model.User;
+import vn.iotstar.service.IUserService;
+import vn.iotstar.util.Constant;
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html; charset=UTF-8");
-        req.setCharacterEncoding("UTF-8");
+@Controller
+@RequestMapping("/profile")
+public class ProfileController {
 
-        HttpSession session = req.getSession(false);
+    @Autowired
+    private IUserService userService;
+
+    @Value("${app.upload.dir:" + Constant.DIR + "}")
+    private String uploadDir;
+
+    // 1. Mở trang thông tin hồ sơ
+    @GetMapping({"", "/"})
+    public String showProfile(HttpSession session, Model model) {
         User currentUser = (session != null) ? (User) session.getAttribute("account") : null;
 
         if (currentUser == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
+            return "redirect:/login";
         }
 
         // Lấy dữ liệu mới nhất từ CSDL
         User user = userService.findById(currentUser.getId());
-        req.setAttribute("user", user);
+        model.addAttribute("user", user);
 
-        // Bắt buộc dùng include để SiteMesh bọc giao diện
-        req.getRequestDispatcher("/views/web/profile.jsp").forward(req, resp);
+        return "web/profile";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html; charset=UTF-8");
-        req.setCharacterEncoding("UTF-8");
-
-        HttpSession session = req.getSession(false);
+    // 2. Xử lý cập nhật hồ sơ & upload avatar
+    @PostMapping({"", "/"})
+    public String updateProfile(@RequestParam("fullname") String fullname,
+                                @RequestParam("phone") String phone,
+                                @RequestParam(value = "image", required = false) MultipartFile file,
+                                HttpSession session,
+                                Model model) {
         User currentUser = (session != null) ? (User) session.getAttribute("account") : null;
 
         if (currentUser == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
+            return "redirect:/login";
         }
-
-        String fullname = req.getParameter("fullname");
-        String phone = req.getParameter("phone");
 
         // Server-side validation
         if (fullname == null || fullname.trim().length() < 2) {
-            req.setAttribute("error", "Họ và tên không được để trống và phải có ít nhất 2 ký tự!");
-            req.setAttribute("user", currentUser);
-            req.getRequestDispatcher("/views/web/profile.jsp").forward(req, resp);
-            return;
+            model.addAttribute("error", "Họ và tên không được để trống và phải có ít nhất 2 ký tự!");
+            model.addAttribute("user", currentUser);
+            return "web/profile";
         }
 
         if (phone == null || !phone.matches("0[0-9]{9}")) {
-            req.setAttribute("error", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!");
-            req.setAttribute("user", currentUser);
-            req.getRequestDispatcher("/views/web/profile.jsp").forward(req, resp);
-            return;
+            model.addAttribute("error", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!");
+            model.addAttribute("user", currentUser);
+            return "web/profile";
         }
 
         User user = userService.findById(currentUser.getId());
         user.setFullname(fullname.trim());
         user.setPhone(phone.trim());
 
-        // Xử lý upload file avatar qua Multipart
-        String uploadPath = Constant.DIR;
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
-
+        // Xử lý upload ảnh đại diện
         try {
-            Part part = req.getPart("image");
-            if (part != null && part.getSize() > 0) {
-                String submittedName = Paths.get(getFileName(part)).getFileName().toString();
+            if (file != null && !file.isEmpty() && file.getOriginalFilename() != null) {
+                File dir = new File(uploadDir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+
+                String submittedName = Paths.get(file.getOriginalFilename()).getFileName().toString();
                 int dotIndex = submittedName.lastIndexOf(".");
                 String ext = (dotIndex > 0) ? submittedName.substring(dotIndex + 1) : "png";
                 String newFileName = "avatar_" + System.currentTimeMillis() + "." + ext;
@@ -113,10 +94,12 @@ public class ProfileController extends HttpServlet {
                 // Xóa ảnh đại diện cũ trên ổ đĩa nếu có
                 String oldImage = user.getImages();
                 if (oldImage != null && !oldImage.startsWith("http") && !"avatar.png".equals(oldImage)) {
-                    deleteOldFile(uploadPath + File.separator + oldImage);
+                    deleteOldFile(uploadDir + File.separator + oldImage);
                 }
 
-                part.write(uploadPath + File.separator + newFileName);
+                Path destination = Paths.get(uploadDir, newFileName);
+                Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+
                 user.setImages(newFileName);
                 user.setAvatar(newFileName);
             }
@@ -124,15 +107,15 @@ public class ProfileController extends HttpServlet {
             e.printStackTrace();
         }
 
-        // Cập nhật vào DB qua JPA
+        // Cập nhật vào DB
         userService.update(user);
 
         // Cập nhật lại session để navbar/topbar hiển thị đúng
         session.setAttribute("account", user);
 
-        req.setAttribute("user", user);
-        req.setAttribute("message", "Cập nhật thông tin hồ sơ thành công!");
-        req.getRequestDispatcher("/views/web/profile.jsp").forward(req, resp);
+        model.addAttribute("user", user);
+        model.addAttribute("message", "Cập nhật thông tin hồ sơ thành công!");
+        return "web/profile";
     }
 
     private void deleteOldFile(String filePath) {

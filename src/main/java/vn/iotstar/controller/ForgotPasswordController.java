@@ -1,92 +1,86 @@
 package vn.iotstar.controller;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import jakarta.servlet.http.HttpSession;
 import vn.iotstar.model.User;
 import vn.iotstar.service.IUserService;
-import vn.iotstar.service.impl.UserServiceImpl;
 import vn.iotstar.util.EmailUtil;
 
-import java.io.IOException;
+@Controller
+public class ForgotPasswordController {
 
-@WebServlet(urlPatterns = {"/forgot-password", "/reset-password"})
-public class ForgotPasswordController extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-    private IUserService userService = new UserServiceImpl();
+    @Autowired
+    private IUserService userService;
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html; charset=UTF-8");
-        req.setCharacterEncoding("UTF-8");
-
-        String action = req.getServletPath();
-        if ("/forgot-password".equals(action)) {
-            req.getRequestDispatcher("/views/web/forgot-password.jsp").include(req, resp);
-        } else if ("/reset-password".equals(action)) {
-            req.getRequestDispatcher("/views/web/reset-password.jsp").include(req, resp);
-        }
+    // 1. Mở trang Quên mật khẩu
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm() {
+        return "web/forgot-password";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html; charset=UTF-8");
-        req.setCharacterEncoding("UTF-8");
+    // 2. Xử lý gửi OTP qua Email
+    @PostMapping("/forgot-password")
+    public String handleForgotPassword(@RequestParam("email") String email,
+                                       HttpSession session,
+                                       Model model) {
+        User user = userService.findByEmail(email);
 
-        String action = req.getServletPath();
-        HttpSession session = req.getSession();
+        if (user == null) {
+            model.addAttribute("error", "Email này không tồn tại trong hệ thống!");
+            return "web/forgot-password";
+        }
 
-        if ("/forgot-password".equals(action)) {
-            String email = req.getParameter("email");
-            User user = userService.findByEmail(email);
+        String otp = EmailUtil.generateOTP();
+        session.setAttribute("resetOTP", otp);
+        session.setAttribute("resetEmail", email);
+        session.setAttribute("resetUsername", user.getUsername());
 
-            if (user == null) {
-                req.setAttribute("error", "Email này không tồn tại trong hệ thống!");
-                req.getRequestDispatcher("/views/web/forgot-password.jsp").include(req, resp);
-                return;
-            }
+        String content = "<h3>Mã OTP đặt lại mật khẩu của bạn là: <b style='color:red; font-size:20px;'>" + otp + "</b></h3>"
+                + "<p>Mã này dùng để xác nhận khôi phục mật khẩu. Tuyệt đối không chia sẻ mã này.</p>";
+        EmailUtil.sendEmail(email, "Xác nhận OTP đặt lại mật khẩu", content);
 
-            String otp = EmailUtil.generateOTP();
-            session.setAttribute("resetOTP", otp);
-            session.setAttribute("resetEmail", email);
-            session.setAttribute("resetUsername", user.getUsername());
+        return "redirect:/reset-password";
+    }
 
-            String content = "<h3>Mã OTP đặt lại mật khẩu của bạn là: <b style='color:red; font-size:20px;'>" + otp + "</b></h3>"
-                    + "<p>Mã này dùng để xác nhận khôi phục mật khẩu. Tuyệt đối không chia sẻ mã này.</p>";
-            EmailUtil.sendEmail(email, "Xác nhận OTP đặt lại mật khẩu", content);
+    // 3. Mở trang Đặt lại mật khẩu
+    @GetMapping("/reset-password")
+    public String showResetPasswordForm() {
+        return "web/reset-password";
+    }
 
-            resp.sendRedirect(req.getContextPath() + "/reset-password");
+    // 4. Xác thực OTP và cập nhật mật khẩu mới
+    @PostMapping("/reset-password")
+    public String handleResetPassword(@RequestParam("otp") String inputOtp,
+                                      @RequestParam("newPassword") String newPassword,
+                                      @RequestParam("confirmPassword") String confirmPassword,
+                                      HttpSession session,
+                                      Model model) {
+        String sessionOtp = (String) session.getAttribute("resetOTP");
+        String username = (String) session.getAttribute("resetUsername");
 
-        } else if ("/reset-password".equals(action)) {
-            String inputOtp = req.getParameter("otp");
-            String newPassword = req.getParameter("newPassword");
-            String confirmPassword = req.getParameter("confirmPassword");
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
+            return "web/reset-password";
+        }
 
-            String sessionOtp = (String) session.getAttribute("resetOTP");
-            String username = (String) session.getAttribute("resetUsername");
+        if (sessionOtp != null && sessionOtp.equals(inputOtp) && username != null) {
+            userService.updatePassword(username, newPassword);
 
-            if (!newPassword.equals(confirmPassword)) {
-                req.setAttribute("error", "Mật khẩu xác nhận không khớp!");
-                req.getRequestDispatcher("/views/web/reset-password.jsp").include(req, resp);
-                return;
-            }
+            session.removeAttribute("resetOTP");
+            session.removeAttribute("resetEmail");
+            session.removeAttribute("resetUsername");
 
-            if (sessionOtp != null && sessionOtp.equals(inputOtp) && username != null) {
-                userService.updatePassword(username, newPassword);
-
-                session.removeAttribute("resetOTP");
-                session.removeAttribute("resetEmail");
-                session.removeAttribute("resetUsername");
-
-                req.setAttribute("message", "Đổi mật khẩu thành công! Hãy đăng nhập lại.");
-                req.getRequestDispatcher("/views/web/login.jsp").include(req, resp);
-            } else {
-                req.setAttribute("error", "Mã OTP không chính xác!");
-                req.getRequestDispatcher("/views/web/reset-password.jsp").include(req, resp);
-            }
+            model.addAttribute("message", "Đổi mật khẩu thành công! Hãy đăng nhập lại.");
+            return "web/login";
+        } else {
+            model.addAttribute("error", "Mã OTP không chính xác!");
+            return "web/reset-password";
         }
     }
 }

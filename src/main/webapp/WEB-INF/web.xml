@@ -10,6 +10,19 @@
         <welcome-file>home</welcome-file>
     </welcome-file-list>
 
+    <!-- Cấu hình SiteMesh Filter -->
+    <filter>
+        <filter-name>sitemesh</filter-name>
+        <filter-class>vn.iotstar.filter.MySiteMeshFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>sitemesh</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>INCLUDE</dispatcher>
+    </filter-mapping>
+
     <session-config>
         <session-timeout>30</session-timeout>
         <cookie-config>

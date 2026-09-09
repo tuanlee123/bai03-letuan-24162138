@@ -1,112 +1,106 @@
 package vn.iotstar.controller;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import jakarta.servlet.http.HttpSession;
 import vn.iotstar.model.User;
 import vn.iotstar.service.IUserService;
-import vn.iotstar.service.impl.UserServiceImpl;
 import vn.iotstar.util.EmailUtil;
 
-import java.io.IOException;
-import java.util.Date;
+@Controller
+public class RegisterController {
 
-@WebServlet(urlPatterns = {"/register", "/verify-otp"})
-public class RegisterController extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-    private IUserService userService = new UserServiceImpl();
+    @Autowired
+    private IUserService userService;
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html; charset=UTF-8");
-        req.setCharacterEncoding("UTF-8");
-
-        String action = req.getServletPath();
-        if ("/register".equals(action)) {
-            req.getRequestDispatcher("/views/web/register.jsp").include(req, resp);
-        } else if ("/verify-otp".equals(action)) {
-            req.getRequestDispatcher("/views/web/verify-otp.jsp").include(req, resp);
-        }
+    // 1. Mở trang đăng ký
+    @GetMapping("/register")
+    public String showRegisterForm() {
+        return "web/register";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html; charset=UTF-8");
-        req.setCharacterEncoding("UTF-8");
+    // 2. Xử lý đăng ký & gửi OTP kích hoạt
+    @PostMapping("/register")
+    public String handleRegister(@RequestParam("username") String username,
+                                 @RequestParam("fullname") String fullname,
+                                 @RequestParam("email") String email,
+                                 @RequestParam("phone") String phone,
+                                 @RequestParam("password") String password,
+                                 @RequestParam("confirmPassword") String confirmPassword,
+                                 HttpSession session,
+                                 Model model) {
+        if (!password.equals(confirmPassword)) {
+            model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
+            return "web/register";
+        }
 
-        String action = req.getServletPath();
-        HttpSession session = req.getSession();
+        if (userService.findByUsername(username) != null) {
+            model.addAttribute("error", "Tên đăng nhập đã tồn tại!");
+            return "web/register";
+        }
 
-        if ("/register".equals(action)) {
-            String username = req.getParameter("username");
-            String fullname = req.getParameter("fullname");
-            String email = req.getParameter("email");
-            String phone = req.getParameter("phone");
-            String password = req.getParameter("password");
-            String confirmPassword = req.getParameter("confirmPassword");
+        if (userService.findByEmail(email) != null) {
+            model.addAttribute("error", "Email này đã được sử dụng!");
+            return "web/register";
+        }
 
-            if (!password.equals(confirmPassword)) {
-                req.setAttribute("error", "Mật khẩu xác nhận không khớp!");
-                req.getRequestDispatcher("/views/web/register.jsp").include(req, resp);
-                return;
-            }
+        // Tạo mã OTP 6 chữ số
+        String otp = EmailUtil.generateOTP();
 
-            if (userService.findByUsername(username) != null) {
-                req.setAttribute("error", "Tên đăng nhập đã tồn tại!");
-                req.getRequestDispatcher("/views/web/register.jsp").include(req, resp);
-                return;
-            }
+        // Lưu tạm User vào Session chờ xác thực
+        User tempUser = new User();
+        tempUser.setUsername(username);
+        tempUser.setFullname(fullname);
+        tempUser.setEmail(email);
+        tempUser.setPhone(phone);
+        tempUser.setPassword(password);
+        tempUser.setRoleid(2); // Role 2: User thường
+        tempUser.setImages("avatar.png");
+        tempUser.setCreatedDate(new Date());
 
-            if (userService.findByEmail(email) != null) {
-                req.setAttribute("error", "Email này đã được sử dụng!");
-                req.getRequestDispatcher("/views/web/register.jsp").include(req, resp);
-                return;
-            }
+        session.setAttribute("tempUser", tempUser);
+        session.setAttribute("regOTP", otp);
 
-            // Tạo mã OTP ngẫu nhiên 6 chữ số
-            String otp = EmailUtil.generateOTP();
+        // Gửi email OTP
+        String content = "<h3>Mã OTP kích hoạt tài khoản của bạn là: <b style='color:red; font-size:20px;'>" + otp + "</b></h3>"
+                + "<p>Mã này có hiệu lực trong phiên đăng ký hiện tại. Vui lòng không chia sẻ cho ai khác.</p>";
+        EmailUtil.sendEmail(email, "Kích hoạt tài khoản - Xác nhận OTP", content);
 
-            // Lưu tạm thông tin User chưa kích hoạt vào Session
-            User tempUser = new User();
-            tempUser.setUsername(username);
-            tempUser.setFullname(fullname);
-            tempUser.setEmail(email);
-            tempUser.setPhone(phone);
-            tempUser.setPassword(password);
-            tempUser.setRoleid(2); // Role 2: User thông thường
-            tempUser.setImages("avatar.png");
-            tempUser.setCreatedDate(new Date());
+        return "redirect:/verify-otp";
+    }
 
-            session.setAttribute("tempUser", tempUser);
-            session.setAttribute("regOTP", otp);
+    // 3. Mở trang nhập mã OTP
+    @GetMapping("/verify-otp")
+    public String showVerifyOtpForm() {
+        return "web/verify-otp";
+    }
 
-            // Gửi email
-            String content = "<h3>Mã OTP kích hoạt tài khoản của bạn là: <b style='color:red; font-size:20px;'>" + otp + "</b></h3>"
-                    + "<p>Mã này có hiệu lực trong phiên đăng ký hiện tại. Vui lòng không chia sẻ cho ai khác.</p>";
-            EmailUtil.sendEmail(email, "Kích hoạt tài khoản - Xác nhận OTP", content);
+    // 4. Xác thực OTP và lưu User vào CSDL
+    @PostMapping("/verify-otp")
+    public String handleVerifyOtp(@RequestParam("otp") String inputOtp,
+                                  HttpSession session,
+                                  Model model) {
+        String sessionOtp = (String) session.getAttribute("regOTP");
+        User tempUser = (User) session.getAttribute("tempUser");
 
-            resp.sendRedirect(req.getContextPath() + "/verify-otp");
+        if (sessionOtp != null && sessionOtp.equals(inputOtp) && tempUser != null) {
+            userService.insert(tempUser);
 
-        } else if ("/verify-otp".equals(action)) {
-            String inputOtp = req.getParameter("otp");
-            String sessionOtp = (String) session.getAttribute("regOTP");
-            User tempUser = (User) session.getAttribute("tempUser");
+            session.removeAttribute("regOTP");
+            session.removeAttribute("tempUser");
 
-            if (sessionOtp != null && sessionOtp.equals(inputOtp) && tempUser != null) {
-                userService.insert(tempUser);
-
-                session.removeAttribute("regOTP");
-                session.removeAttribute("tempUser");
-
-                req.setAttribute("message", "Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay.");
-                req.getRequestDispatcher("/views/web/login.jsp").include(req, resp);
-            } else {
-                req.setAttribute("error", "Mã OTP không hợp lệ hoặc đã hết hạn!");
-                req.getRequestDispatcher("/views/web/verify-otp.jsp").include(req, resp);
-            }
+            model.addAttribute("message", "Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay.");
+            return "web/login";
+        } else {
+            model.addAttribute("error", "Mã OTP không hợp lệ hoặc đã hết hạn!");
+            return "web/verify-otp";
         }
     }
 }

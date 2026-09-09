@@ -1,49 +1,63 @@
 package vn.iotstar.controller;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import vn.iotstar.util.Constant;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.file.Files;
 
-@WebServlet(urlPatterns = {"/image"})
-public class ImageController extends HttpServlet {
-    private static final long serialVersionUID = 1L;
+@Controller
+public class ImageController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String fileName = req.getParameter("fname");
+    @Value("${app.upload.dir:" + Constant.DIR + "}")
+    private String uploadDir;
+
+    @GetMapping("/image")
+    @ResponseBody
+    public ResponseEntity<Resource> getImage(@RequestParam(name = "fname", required = false) String fileName) {
         if (fileName == null || fileName.trim().isEmpty()) {
-            fileName = "avatar.png";
+            fileName = "default_avatar.png";
         }
 
-        File file = new File(Constant.DIR + File.separator + fileName);
+        File file = new File(uploadDir, fileName);
+
+        // Nếu file yêu cầu không có, tìm fallback
         if (!file.exists()) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        // Tự động nhận diện content type theo đuôi file
-        String mimeType = getServletContext().getMimeType(file.getName());
-        if (mimeType == null) {
-            mimeType = "application/octet-stream";
-        }
-        resp.setContentType(mimeType);
-        resp.setContentLengthLong(file.length());
-
-        try (FileInputStream in = new FileInputStream(file);
-             OutputStream out = resp.getOutputStream()) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
+            file = new File(uploadDir, "default_avatar.png");
+            if (!file.exists()) {
+                file = new File(uploadDir, "default_cate.png");
             }
         }
+
+        if (!file.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new FileSystemResource(file);
+
+        // Tự động nhận diện định dạng MIME (image/png, image/jpeg, ...)
+        String mimeType;
+        try {
+            mimeType = Files.probeContentType(file.toPath());
+        } catch (IOException e) {
+            mimeType = null;
+        }
+
+        MediaType mediaType = (mimeType != null) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getName() + "\"")
+                .contentType(mediaType)
+                .body(resource);
     }
 }

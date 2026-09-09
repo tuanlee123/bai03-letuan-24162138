@@ -1,31 +1,24 @@
 package vn.iotstar.controller;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import jakarta.servlet.http.HttpSession;
 
-import java.io.IOException;
+@Controller
+public class LogoutController {
 
-@WebServlet(urlPatterns = {"/logout"})
-public class LogoutController extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
         if (session != null) {
             session.removeAttribute("account");
             session.invalidate(); // Hủy bỏ toàn bộ session hiện tại
         }
-
-        resp.sendRedirect(req.getContextPath() + "/login");
+        return "redirect:/login";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doGet(req, resp);
+    @PostMapping("/logout")
+    public String logoutPost(HttpSession session) {
+        return logout(session);
     }
 }

@@ -41,6 +41,12 @@
                     <i class="bi bi-box-seam me-2"></i> Quản lý sản phẩm
                 </a>
             </li>
+            <!-- Đã bổ sung mục Quản lý người dùng vào đây -->
+            <li>
+                <a href="<c:url value='/admin/users'/>" class="nav-link">
+                    <i class="bi bi-people-fill me-2"></i> Quản lý người dùng
+                </a>
+            </li>
             <li>
                 <a href="<c:url value='/home'/>" class="nav-link text-info">
                     <i class="bi bi-globe me-2"></i> Xem ngoài Web
@@ -89,17 +95,18 @@
                     </a>
                 </div>
             </div>
+            <!-- Bổ sung thêm card Quản lý người dùng cho cân đối giao diện -->
             <div class="col-md-4">
-                <div class="card stat-card border-0 shadow-sm bg-dark text-white p-3">
+                <div class="card stat-card border-0 shadow-sm bg-warning text-dark p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="mb-1 text-white-50 small text-uppercase fw-semibold">Tài Khoản Hiện Tại</p>
-                            <h4 class="fw-bold mb-0">${sessionScope.account != null ? sessionScope.account.username : 'admin'}</h4>
+                            <p class="mb-1 text-dark-50 small text-uppercase fw-semibold">Thành Viên</p>
+                            <h4 class="fw-bold mb-0">Quản Lý Tài Khoản</h4>
                         </div>
-                        <i class="bi bi-person-badge fs-1 opacity-75"></i>
+                        <i class="bi bi-people fs-1 opacity-75"></i>
                     </div>
-                    <a href="<c:url value='/profile'/>" class="text-white text-decoration-none mt-3 d-inline-block small">
-                        Hồ sơ cá nhân <i class="bi bi-arrow-right ms-1"></i>
+                    <a href="<c:url value='/admin/users'/>" class="text-dark text-decoration-none mt-3 d-inline-block small fw-bold">
+                        Xem chi tiết <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -113,6 +120,10 @@
                 </a>
                 <a href="<c:url value='/admin/product/add'/>" class="btn btn-outline-success">
                     <i class="bi bi-plus-circle me-1"></i> Thêm Sản Phẩm Mới
+                </a>
+                <!-- Thêm nút Thêm người dùng mới -->
+                <a href="<c:url value='/admin/user/add'/>" class="btn btn-outline-warning text-dark">
+                    <i class="bi bi-person-plus me-1"></i> Thêm Tài Khoản Mới
                 </a>
                 <a href="<c:url value='/home'/>" class="btn btn-outline-secondary">
                     <i class="bi bi-box-arrow-up-right me-1"></i> Mở Trang Web Khách Hàng

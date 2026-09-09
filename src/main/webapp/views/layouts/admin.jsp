@@ -60,6 +60,11 @@
                         <i class="bi bi-box-seam me-2"></i> Quản lý Sản phẩm
                     </a>
                 </li>
+                <li>
+                    <a href="<c:url value='/admin/users'/>" class="nav-link">
+                        <i class="bi bi-people me-2"></i> Quản lý Người dùng
+                    </a>
+                </li>
                 <li class="mt-4 border-top border-secondary pt-3">
                     <a href="<c:url value='/home'/>" class="nav-link text-warning">
                         <i class="bi bi-arrow-left-circle me-2"></i> Xem ngoài Web

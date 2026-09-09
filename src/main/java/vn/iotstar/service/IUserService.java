@@ -37,4 +37,7 @@ public interface IUserService {
 
     // Lấy toàn bộ danh sách User
     List<User> findAll();
+
+    // Tìm kiếm User theo từ khóa phục vụ Admin
+    List<User> search(String keyword);
 }

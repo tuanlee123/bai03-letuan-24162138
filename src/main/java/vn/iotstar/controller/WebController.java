@@ -1,38 +1,29 @@
 package vn.iotstar.controller;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import vn.iotstar.model.Category;
 import vn.iotstar.model.Product;
 import vn.iotstar.service.ICategoryService;
 import vn.iotstar.service.IProductService;
-import vn.iotstar.service.impl.CategoryServiceImpl;
-import vn.iotstar.service.impl.ProductServiceImpl;
 
-@WebServlet(urlPatterns = {
-    "/home",
-    "/trang-chu"
-})
-public class WebController extends HttpServlet {
-    private static final long serialVersionUID = 1L;
+@Controller
+public class WebController {
 
-    private IProductService productService = new ProductServiceImpl();
-    private ICategoryService categoryService = new CategoryServiceImpl();
+    @Autowired
+    private IProductService productService;
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
-            throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        resp.setCharacterEncoding("UTF-8");
+    @Autowired
+    private ICategoryService categoryService;
 
+    @GetMapping({"", "/", "/home", "/trang-chu"})
+    public String index(Model model) {
         try {
             // 1. Lấy toàn bộ danh sách sản phẩm từ DB
             List<Product> allProducts = productService.findAll();
@@ -46,7 +37,7 @@ public class WebController extends HttpServlet {
                         .collect(Collectors.toList());
             }
 
-            // 3. Lấy danh sách danh mục
+            // 3. Lấy danh sách danh mục hoạt động (status = 1)
             List<Category> allCategories = categoryService.findAll();
             List<Category> activeCategories = null;
             if (allCategories != null && !allCategories.isEmpty()) {
@@ -55,24 +46,18 @@ public class WebController extends HttpServlet {
                         .collect(Collectors.toList());
             }
 
-            // 4. Đặt các biến vào request (cung cấp đa dạng tên biến để tránh lệch gọi ở JSP)
-            req.setAttribute("latestProducts", latestProducts != null ? latestProducts : allProducts);
-            req.setAttribute("listproduct", allProducts);
-            req.setAttribute("listcate", activeCategories != null ? activeCategories : allCategories);
-            req.setAttribute("categories", activeCategories != null ? activeCategories : allCategories);
+            // 4. Đặt các biến vào Model
+            model.addAttribute("latestProducts", latestProducts != null ? latestProducts : allProducts);
+            model.addAttribute("listproduct", allProducts);
+            model.addAttribute("listcate", activeCategories != null ? activeCategories : allCategories);
+            model.addAttribute("categories", activeCategories != null ? activeCategories : allCategories);
 
-            // 5. Forward chuẩn ra trang views/index.jsp
-            req.getRequestDispatcher("/views/index.jsp").forward(req, resp);
+            // Nạp views/index.jsp
+            return "index";
 
         } catch (Exception e) {
             e.printStackTrace();
-            resp.getWriter().println("Loi tai trang chu: " + e.getMessage());
+            return "redirect:/login";
         }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
-            throws ServletException, IOException {
-        doGet(req, resp);
     }
 }

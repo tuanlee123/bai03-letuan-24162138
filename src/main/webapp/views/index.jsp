@@ -236,7 +236,7 @@
     <footer class="bg-dark text-white py-4 mt-auto border-top">
         <div class="container text-center">
             <p class="mb-1 fw-bold text-warning">SHOPPING ONLINE &copy; 2026</p>
-            <small class="text-white-50">Hệ thống website thương mại điện tử Jakarta EE 10 & Tomcat 10.1</small>
+            <small class="text-white-50">Hệ thống website thương mại điện tử Spring Boot 3 & Embedded Tomcat</small>
         </div>
     </footer>
 
